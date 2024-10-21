@@ -12,6 +12,9 @@ const productos = [
 const DESCUENTO = 0.10;
 const COSTO_ENVIO = 10;
 
+// Array Constructor para el carrito de compras
+let carrito = new Array();
+
 // Función de inicio de sesión
 function iniciarSesion() {
     const usuarioCorrecto = "usuario";
@@ -59,6 +62,9 @@ function seleccionarProductos() {
             }
         } while (cantidad <= 0 || isNaN(cantidad));
 
+        // Añadir producto al carrito usando Array Constructor
+        carrito.push({ producto: productos[seleccion].nombre, cantidad: cantidad, subtotal: productos[seleccion].precio * cantidad });
+
         total += productos[seleccion].precio * cantidad;
         console.log("Producto: " + productos[seleccion].nombre + ", Cantidad: " + cantidad + ", Subtotal: $" + (productos[seleccion].precio * cantidad));
 
@@ -69,7 +75,14 @@ function seleccionarProductos() {
 }
 
 // Función para calcular el total con opciones de envío y pago
-function calcularTotal(total) {
+function calcularTotal() {
+    let total = 0;
+
+    // Utilizo forEach para calcular el total del carrito (HOF)
+    carrito.forEach(item => {
+        total += item.subtotal;
+    });
+
     let envio = prompt("¿Desea envío a domicilio con costo adicional de $10? (si/no)").toLowerCase();
     if (envio === "si") {
         total += COSTO_ENVIO;
@@ -85,10 +98,27 @@ function calcularTotal(total) {
     return total;
 }
 
+// Función para mostrar productos en el carrito con filtro (HOF)
+function mostrarCarrito() {
+    console.log("Productos en el carrito:");
+
+    carrito.forEach(item => {
+        console.log("Producto: " + item.producto + ", Cantidad: " + item.cantidad + ", Subtotal: $" + item.subtotal);
+    });
+
+    // Filter para productos con subtotal mayor a $500 (HOF)
+    let productosCaros = carrito.filter(item => item.subtotal > 500);
+    console.log("Productos cuyo subtotal es mayor a $500:");
+    productosCaros.forEach(item => {
+        console.log(item.producto + " - Subtotal: $" + item.subtotal);
+    });
+}
+
 // Llamada a las funciones principales
 if (iniciarSesion()) {
-    let totalCompra = seleccionarProductos();
-    let totalFinal = calcularTotal(totalCompra);
+    seleccionarProductos();
+    mostrarCarrito(); // Mostrar contenido del carrito
+    let totalFinal = calcularTotal();
     alert("Total a pagar: $" + totalFinal.toFixed(2));
     console.log("Total final: $" + totalFinal.toFixed(2));
 } else {
