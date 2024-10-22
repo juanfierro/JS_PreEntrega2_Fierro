@@ -14,6 +14,7 @@ const COSTO_ENVIO = 10;
 
 // Array Constructor para el carrito de compras
 let carrito = new Array();
+let sesionIniciada = false; // Variable para mantener el estado de la sesión
 
 // Función de inicio de sesión
 function iniciarSesion() {
@@ -27,6 +28,7 @@ function iniciarSesion() {
         contraseña = prompt("Ingrese su contraseña:(pass)");
         if (usuario === usuarioCorrecto && contraseña === contraseñaCorrecta) {
             console.log("Inicio de sesión exitoso.");
+            sesionIniciada = true; // Cambiar estado de sesión
             return true;
         } else {
             intentos--;
@@ -68,7 +70,13 @@ function seleccionarProductos() {
         total += productos[seleccion].precio * cantidad;
         console.log("Producto: " + productos[seleccion].nombre + ", Cantidad: " + cantidad + ", Subtotal: $" + (productos[seleccion].precio * cantidad));
 
-        continuar = prompt("¿Desea agregar otro producto? (si/no)").toLowerCase();
+        // Validación para agregar otro producto
+        do {
+            continuar = prompt("¿Desea agregar otro producto? (si/no)").toLowerCase();
+            if (continuar !== "si" && continuar !== "no") {
+                alert("Respuesta inválida. Por favor, ingrese 'si' o 'no'.");
+            }
+        } while (continuar !== "si" && continuar !== "no");
     } while (continuar === "si");
 
     return total;
@@ -83,12 +91,28 @@ function calcularTotal() {
         total += item.subtotal;
     });
 
-    let envio = prompt("¿Desea envío a domicilio con costo adicional de $10? (si/no)").toLowerCase();
+    let envio;
+    // Validación de la respuesta correcta de envío
+    do {
+        envio = prompt("¿Desea envío a domicilio con costo adicional de $10? (si/no)").toLowerCase();
+        if (envio !== "si" && envio !== "no") {
+            alert("Respuesta inválida. Por favor, ingrese 'si' o 'no'.");
+        }
+    } while (envio !== "si" && envio !== "no");
+
     if (envio === "si") {
         total += COSTO_ENVIO;
     }
 
-    let pago = prompt("¿Cómo desea pagar? (1. Tarjeta - Sin descuento, 2. Efectivo - 10% de descuento)").toLowerCase();
+    let pago;
+    // Validación de respuesta correcta de tipo de pago
+    do {
+        pago = prompt("¿Cómo desea pagar? (1. Tarjeta - Sin descuento, 2. Efectivo - 10% de descuento)").toLowerCase();
+        if (pago !== "1" && pago !== "2" && pago !== "tarjeta" && pago !== "efectivo") {
+            alert("Respuesta inválida. Por favor, ingrese '1' para Tarjeta o '2' para Efectivo.");
+        }
+    } while (pago !== "1" && pago !== "2" && pago !== "tarjeta" && pago !== "efectivo");
+
     if (pago === "2" || pago === "efectivo") {
         let descuento = total * DESCUENTO;
         total -= descuento;
@@ -114,14 +138,77 @@ function mostrarCarrito() {
     });
 }
 
-// Llamada a las funciones principales
-if (iniciarSesion()) {
-    seleccionarProductos();
-    mostrarCarrito(); // Mostrar contenido del carrito
-    let totalFinal = calcularTotal();
-    alert("Total a pagar: $" + totalFinal.toFixed(2));
-    console.log("Total final: $" + totalFinal.toFixed(2));
-} else {
-    console.log("Sesión finalizada...");
-    alert("Se acabaron los intentos...");
+// Función para buscar un producto en el carrito
+function buscarProducto(nombreProducto) {
+    let productoEncontrado = carrito.find(item => item.producto.toLowerCase() === nombreProducto.toLowerCase());
+
+    if (productoEncontrado) {
+        let mensaje = "Producto encontrado: " + productoEncontrado.producto + ", Cantidad: " + productoEncontrado.cantidad + ", Subtotal: $" + productoEncontrado.subtotal;
+        console.log(mensaje);
+        alert(mensaje);  // Mostrar en un alert también
+    } else {
+        let mensaje = "Producto no encontrado en el carrito.";
+        console.log(mensaje);
+        alert(mensaje);  // Mostrar en un alert también
+    }
 }
+
+// Función para gestionar la revisión del carrito
+function revisarCarrito() {
+    let revisar;
+    do {
+        revisar = prompt("¿Desea revisar el carrito buscando un producto? (si/no)").toLowerCase();
+        if (revisar !== "si" && revisar !== "no") {
+            alert("Respuesta inválida. Por favor, ingrese 'si' o 'no'.");
+        }
+    } while (revisar !== "si" && revisar !== "no");
+
+    while (revisar === "si") {
+        let nombreProducto = prompt("Ingrese el nombre del producto que desea buscar en el carrito:");
+        buscarProducto(nombreProducto);
+
+        // Preguntar de nuevo si desea revisar el carrito
+        do {
+            revisar = prompt("¿Desea revisar el carrito buscando otro producto? (si/no)").toLowerCase();
+            if (revisar !== "si" && revisar !== "no") {
+                alert("Respuesta inválida. Por favor, ingrese 'si' o 'no'.");
+            }
+        } while (revisar !== "si" && revisar !== "no");
+    }
+}
+
+// Función para gestionar la continuación de compras
+function continuarComprando() {
+    let seguirComprando;
+    do {
+        seguirComprando = prompt("¿Desea volver al catálogo para seguir comprando? (si/no)").toLowerCase();
+        if (seguirComprando !== "si" && seguirComprando !== "no") {
+            alert("Respuesta inválida. Por favor, ingrese 'si' o 'no'.");
+        }
+    } while (seguirComprando !== "si" && seguirComprando !== "no");
+
+    return seguirComprando === "si";
+}
+
+// Llamada a las funciones principales
+function iniciarCompra() {
+    if (!sesionIniciada) {
+        iniciarSesion();
+    }
+
+    let totalCompras = seleccionarProductos();
+    mostrarCarrito(); // Mostrar contenido del carrito
+    revisarCarrito(); // Función para revisar el carrito
+
+    // Consultar si desea continuar comprando
+    if (continuarComprando()) {
+        iniciarCompra(); // Volver a iniciar la compra
+    } else {
+        let totalFinal = calcularTotal();
+        alert("Total a pagar: $" + totalFinal.toFixed(2));
+        console.log("Total final: $" + totalFinal.toFixed(2));
+    }
+}
+
+// Iniciar la compra
+iniciarCompra();
